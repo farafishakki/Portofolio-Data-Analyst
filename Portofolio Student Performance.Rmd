@@ -1,0 +1,255 @@
+---
+title: "Beyond the Test Scores: The Role of Parents and Test Preparation Matters"
+author: "Ahmad Farafis Hakkari"
+date: "2024-02-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Understanding successful students is crucial in education, especially when it comes to their achievement in tests. Identifying the factors that contribute to their success when it comes to their achievement in the exam score. Identifying the factors that contribute to their success of exam score can be immensely valuable for educators environment such as teachers, policymakers, and even parents. Several factors influence student score, including instrinsic motivational and parenting factors.
+
+One key aspect of instrinsic motivation is the student's effort towards completing tasks and seeking deeper understanding beyond test preparation. Studies by Carol Dweck in her book "Mindset", suggest that student students with a growth mindset, who believe their abilities can develop through effort, tend to achieve more than those with a fixed mindset. By exercising and doing the preparation test, it is indicated that those who completed more prepared than those who did not complete the preparation test.
+
+Another relevant factor is parental level of education. While it is true that higher parental education can positively influece aca demic outcomes, it's important to acknowledge the complexity of this relationship. Other factor, such as family income, learning, environment, and individual student motivation, also play significant roles. Nevertheless, analyzing parental education alongside other variable can provide valuable insight.
+
+This Study will investigate data sets to gain deeper understanding of factors influencing test performance. We wil analyse the relationship between successful and unseccessful test preparation, parental level of education, and subject correlations. By examining these factors, we aim to identify patterns and trends that can inform interventions and impove overall student achievement.
+
+## Problem Questions
+
+1.  To what extent does parental education level significantly influence student performance on the total score?
+
+2.  Does completing a standardized test preparation program significantly improve student performance on the score compared to those who did not participate in such a program?
+
+3.  Is there a significant positive correlation between student performance in math, reading, and writing score?
+
+## Method
+
+In this writing, we employ a range of statistical methods for analysis. We begin with descriptive statistics to grasp the data distribution, understand summary statistics, and identify any outliers. Following this, we apply analysis of variance to gain insights into group differences. Subsequently, we use statistical tests to compare groups, discerning differences between two groups. Lastly, correlation analysis is employed to explore the strength and direction of relationships between two or more variables.
+
+## Analysing
+
+### 1. Loading The Data
+
+```{r}
+student <- read.csv("StudentsPerformance.csv", stringsAsFactors = T, sep=";")
+```
+
+```{r}
+head(student)
+```
+
+To read the data from a CSV file and convert column variables to factors, we use the .csv format with the stringAsFactors parameter. Additionally, the sep function is employed to handle semicolon-separated files. The dataset comprises variables including gender, group, parental level of education, test preparation, math score, reading score, and writing score. To gain a deeper understanding of the data, it is essential to examine its structure.
+
+### 2. Exploring The Type and Distribution of Data
+
+```{r}
+str(student)
+```
+
+The dataframe contains 1000 rows and 7 columns. There are four columns designated as factors or categorical variables, such as gender, group, parental level of education, and test preparation course, and three columns of integer type, namely math, reading, and writing scores. After identifying the data types, we aim to explore the levels and distribution of the data.
+
+```{r}
+summary(student)
+```
+
+In this analysis, our aim is to explore the distribution of data. For the 'gender' column, it has two levels: female (518) and male (482). The 'group' column has five levels - Group A (89), B (190), C (319), D (262), and E (140). Moving on to 'parental level of education,' it encompasses six levels: associate's degree (222), bachelor's degree (118), high school (196), master's degree (59), some college (226), and some high school (179). Finally, the 'test preparation' column has two levels: completed (358) and none (642).
+
+For the numeric columns, the information includes the minimum, first quartile, median, mean, third quartile, and maximum scores. In the 'math' column, the score ranges from 0.00 to 100.00, with a median score of 66 and a mean score of 66.09. Moving to the 'reading' score, it ranges from 17.00 to 100.00, with a median score of 70.00 and a mean score of 69.17. In the 'writing' score, the range is 10.00 to 100.00, with a median score of 69.00 and a mean score of 68.05.
+
+Subsequently, we aim to investigate the distribution for our problem statement, focusing on 'parental level of education,' 'test preparation course,' and the subjects variables. Below is the code to display the distribution of these variables:
+
+```{r}
+table(student$parental.level.of.education,student$gender)
+```
+
+This code indicates the distribution of parental level of education by gender. The overall distribution doesn't show significant differences between females and males, such as in the case of "some high school" education, where there are 91 females and 88 males, and so on.
+
+```{r}
+table(student$test.preparation.course,student$gender)
+```
+
+We see that, there are more student that are none or not compeleted the test preparation course (334 and 308) than compeleted the preparation course (184 and 174). Eventhough, according to gender, the sum of them are not significantly different between male and female for completed the preration course and not.
+
+```{r}
+table(student$parental.level.of.education,student$test.preparation.course)
+```
+
+Then,this table dives into who's crushing test preparation and who's skipping it, based on their parents' education level. each row shows a different level, and the columns tell us how many folks completed a test prep course("completed") or didn't("none"). This table continues for all the education levels, basically showing us the headcount for test prep completion vs. non-completion.
+
+### 3. Delving The Distribution of Total Score
+
+Before we delve the distribution of the score, firstly, we have to make the new columns with total score from the average of subjects. So here's the code;
+
+```{r}
+student$total.score <-round(rowMeans(student[,c("math.score","reading.score","writing.score")]), 2)
+head(student)
+```
+
+To create a new column in total score, we need to sum 3 columns such as math, reading, and writing scores and then divided 3 to get the average of the scores. After getting total score column, we examine how data points are distributed according to the average and the standart deviation of the parental level of education and test preparation course.
+
+```{r}
+library(dplyr)
+agg_1<- aggregate(total.score~parental.level.of.education, data=student,mean)
+agg_2<- aggregate(total.score~parental.level.of.education, data=student,sd)
+merge_12<- merge(agg_1,agg_2, by="parental.level.of.education")
+merge_12 %>% arrange(desc(total.score.x))
+```
+
+This table show the mean and standart deviation by parental level of education. The highest mean score is from master's degree while the lowest mean score is from high school. In addition, the largest dispersion of data is from some high school whereas the smallest dispersion is from high school. it means that, the parental level of education influence the score. After that, we want to dive the information about the average and the standart deviation total score by test preparation course.
+
+```{r}
+agg_3<- aggregate(total.score~test.preparation.course, data=student,mean)
+agg_4<-aggregate(total.score~test.preparation.course, data=student,sd)
+merge_34<- merge(agg_3,agg_4, by="test.preparation.course")
+merge_34 %>% arrange(desc(total.score.x))
+```
+
+This table provides information about the average and standard deviation of total scores based on test preparation. It indicates that the mean score for students who completed the test preparation is higher (72.66) compared to those who did not complete or had none (65.03). Additionally, the standard deviation for students who did not complete the test preparation course (14.18) suggests that the scores are more dispersed or spread out compared to those who completed the course (13.03). A higher standard deviation indicates greater variability in scores.
+
+### 4. Plotting Visualization The Data
+
+After we explore the distribution dataset according to the parental level of education and test preparation course, we want to make it boxplot.
+
+```{r}
+library(ggplot2)
+ggplot(student, aes(reorder(x=parental.level.of.education,total.score,na.rm=T),y=total.score,fill=parental.level.of.education))+geom_boxplot()+
+  labs(x="Parental Level of Education", y="Total Score", fill="Parental Level of Education")
+```
+
+The boxplot contains much information such as the the minimum, maximum, first quantile, second quantile or median, and third quantile. We can know the information that the highest mean and standart deviation is grom master's degree parental level of education. The information can be seen because there is the line in the boxplot that means median and the wide of the box that means disperasion or standart deviation. In addition, the outlier of data can be showed from the dots in the graph which has seven outliers in the data.
+
+```{r}
+ggplot(student, aes(reorder(x=test.preparation.course, total.score,na.rm=T), y=total.score,fill=test.preparation.course))+geom_boxplot()+
+  labs(x="Preparation Course", y="Total Score")
+```
+
+After analyzing the boxplot, it becomes evident that it is representative of the data based on the test preparation course. The plot indicates that the median score for those who completed the course is higher compared to those who did not or have not completed it. Moreover, the spread of the data is wider for those who did not complete the course than for those who completed it. The presence of outliers remains consistent with the previous boxplot, totaling seven outliers, which is attributable to the same dataset and analysis.
+
+### 5. Inferential Statistical Analysis in Parental Level of Education
+
+```{r}
+library(car)
+leveneTest(total.score~parental.level.of.education, data=student)
+```
+
+The degrees of freedom in Levene's Test for Homogeneity of Variance are calculated based on the number of groups (k) and the total number of observations (N). In this case, we have 6 groups (Df_group = 6 - 1 = 5) and a total of 1000 observations. The degrees of freedom for the error term (Df_error) are calculated as (N - k).So, Df_error = 1000 - 6 = 994. Then, the obtained p-value is 0.7703, where p-value <= 0.05, hence we accept the null hypothesis (H0). In other words, the responses from the groups of total score according to the parental level of education are homogeneously distributed, fulfilling the assumption of homogeneity.
+
+```{r}
+one_way_anova<- aov(total.score~parental.level.of.education, data=student)
+shapiro.test(one_way_anova$residuals)
+```
+
+The Shapiro-Wilk normality test is used to assess whether the samples are normal distributed or not. With this data, the p-value (0.00008223) is less than the typical significance level of 0.05, we would reject the null hypothesis. It means that, our data is not normal distributed that indicates we cannot use parametric stastistical analysis.
+
+```{r}
+summary(one_way_anova) # pengaruh apa tidak
+```
+
+The p-value is extremely small (0.0000000000438), suggesting that there is strong evidence to reject the null hypothesis. This implies that there is a significant difference in means among the different levels of the "parental level.of education" factor. In summary, the ANOVA results suggest that the parental level of education has a significant impact on the dependent variable or total score student.
+
+```{r}
+TukeyHSD(one_way_anova)
+```
+
+This output is from a Tukey multiple comparisons test following a one-way ANOVA. The ANOVA was conducted to assess if there are statistically significant differences in the means of the dependent variable (total.score) across different levels of the independent variable (parental level of education). We want to check it the result of ANOVA even the data is not normal distributed. According to the result, there are 7 comparisons that get significant or p adj < 0.05. Next, we will use non-parametric analysis to obtain more accurate results. The solution of the non parametric test, we have to use Kruskal-Wallis because it doesn't require any assumtion of data distribution.
+
+```{r}
+kruskal.test(total.score~parental.level.of.education, data=student) #bukan berdasarkan distribusi, jadi menggunakan non parametrik test
+```
+
+The small p-value (0.00000001648) indicates that the observed differences in total scores among the groups are unlikely to have occurred by random chance alone. Thus, you have evidence to reject the null hypothesis and conclude that there are statistically significant differences in the total scores across the different levels of parental education. After that, we analyse the data with Dunn-test as follow up test to to find out which differences between pairs of groups are significant.
+
+```{r}
+library(rstatix)
+dunn_test(total.score~parental.level.of.education, data=student)
+```
+
+This test want to see which group of parent education levels have significant differences. This is indicated by a p-value (adj) <0.05. There are six significant pair groups which are indicated by stars symbols in p adj significant. This result is more accurate than Tukey multiple comparison results before. In conclude, from 15 pair groups parental level of education, there are six significantly different pair groups.
+
+### 6.Inferential Statistic in Test Preparation Course
+
+After applying analysis of variance (ANOVA) to compare differences between two groups, the next step is to conduct individual tests for each group to determine their significance. So, here is the code;
+
+```{r}
+uji_t<- lm(total.score~test.preparation.course, data=student)
+summary(uji_t)
+```
+
+This result indicates that the test preparation group has a significantly different impact on students' total scores, with a p-value of 2.2e-16. It interprets an R-squared of 0.06, which means a low explanation for the total score. In addition, the test preparation course has an estimated intercept of 72.6695 with a different score of -7.6307. However, we have to be careful because we do not know whether these residuals show a normal distribution or not. If they do not have a normal distribution, it will lead to mistakes in interpreting the group test. So, here is the following code to check the distribution of the test;
+
+```{r}
+shapiro.test(uji_t$residuals)
+```
+
+The low p-value (0.001677) indicates there is enough evidence to reject the null hypothesis, which states that the residuals have a normal distribution. Therefore, it can be concluded that the residuals do not have a normal distribution. We have a solution with the Wilcoxon test (Wilcoxon rank-sum test or Mann-Whitney U test) as an alternative method when the residuals do not have a normal distribution. This test is used to compare differences between two independent groups and does not rely on the assumption of normality.
+
+```{r}
+group_none<- student$total.score[student$test.preparation.course == "none"]
+group_completed<- student$total.score[student$test.preparation.course == "completed"]
+Uji_wilcox<-wilcox.test(group_none,group_completed)
+Uji_wilcox
+```
+
+With a very low p-value (6.203e-16), we have very strong evidence to reject the null hypothesis, which means there is a significant difference between the two groups. statistically, the test results showed a strong difference between the groups which are students completed the test and not.
+
+### 7.Correlation between math-reading, math-writing, reading-writing
+
+Next analysis, we want to know the correlation between two subjects which are math,reading and writing. The correlation should be math with reading, math with writing, and reading with writing. The following analysis is here;
+
+```{r}
+ggplot(student, aes(x=math.score,y=reading.score))+
+  geom_point(color="darkblue",size=3,alpha=0.7)+labs(title = "The Correlation Between Math and Reading", x="Math Score", y="Reading Score")
+```
+
+The scatter plot shows that there is positive correlation between math and reading. The plot moves from the bottom left to the top right which indicates that there is a correlation between the two scores which means that when high math is identical to high reading scores. For specific correlation score, we will check with Pearson's Correlation Test. Here is the score;
+
+```{r}
+cor.test(student$math.score, student$reading.score, method="pearson")
+```
+
+Pearson's product-moment correlation results show that there is a significant and moderately strong relationship between students' math scores and reading scores (r = 0.8176, p = 2.2e-16).
+
+After that, we want to analyse the correlation between math and writing. Here's the plot; The scatter plot indicates a positive linear relationship between math and writing scores. The upward trend of the plot suggests that the two scores are correlated, implying that higher math scores correspond to higher reading scores.
+
+```{r}
+ggplot(student, aes(x=math.score, y=writing.score))+geom_point(color="darkred",size=3,alpha=0.7)+labs(title = "The Correlation between Math and Writing", x="Math Score", y="Writing Score")
+```
+
+The specific score should be here;
+
+```{r}
+cor.test(student$math.score, student$writing.score, method = "pearson")
+```
+
+The linear association between math and writing scores of students is both statistically significant and moderately high, as indicated by the Pearson’s correlation coefficient (r = 0.802642, p = 2.2e-16).
+
+The last, we want to know the correlation between reading and writing. the plot is here;
+
+```{r}
+ggplot(student, aes(x=reading.score, y=writing.score))+geom_point(color="darkgreen", size=3, alpha=0.7)+labs(title = "The Correlation Between Reading and Writing", x="Reading Score", y="Writing Score")
+```
+
+The upward trend in the scatter plot suggests a positive correlation between reading and writing scores. This implies that students who perform well in reading may also perform well in writing. This scatter plot even depicts a very close correlation compared to the previous correlations, namely between math and writing, and math and reading. Therefore, we want to determine the magnitude of these correlation values.
+
+```{r}
+cor.test(student$reading.score, student$writing.score, method = "pearson")
+```
+
+The correlation score is 0.9545981 with a p-value \< 2.2e-16, indicating a high and significant correlation between both of them.
+
+## Conclusion
+
+This text aims to address three questions regarding the influence of parental education level, participation in test preparation courses, and the correlation between subjects in examination results. It turns out that the level of parental education significantly influences the total score obtained by students. In the group comparison analysis, six pairs of parenting groups with different levels of education showed significant differences. Consequently, we conclude that students who complete the preparation test before the examination achieve higher total scores than students who do not complete it. As a result, we can assume that test preparation, which is prepared by the school, is effective in increasing student scores. Lastly, when students obtain total scores in one subject, there is a tendency for them to achieve high total scores in other subjects. Therefore, when students excel in math, they usually achieve high total scores in reading and writing.
+
+## References
+
+Wickham, H., & Grolemund, G. (2017). R for data science. O'Reilly Media.
+
+Grolemund, G. (2014). Hands-On Programming with R. O'Reilly Media.
+
+Dweck, C. S. (2006). Mindset: The new psychology of success. Random House.
